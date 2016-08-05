@@ -11,7 +11,7 @@ namespace VersFx.Formats.Text.Epub.Entities
         public string Title { get; set; }
         public string ContentFileName { get; set; }
         public string Anchor { get; set; }
-        public string HtmlContent { get; set; }
+        public EpubContentFile HtmlContentFile { get; set; }
         public List<EpubChapter> SubChapters { get; set; }
 
         public override string ToString()
