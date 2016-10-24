@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
+using ICSharpCode.SharpZipLib.Zip;
 using VersFx.Formats.Text.Epub.Entities;
 using VersFx.Formats.Text.Epub.Readers;
 using VersFx.Formats.Text.Epub.Schema.Navigation;
@@ -17,7 +19,7 @@ namespace VersFx.Formats.Text.Epub
 			if (zipFile == null) throw new ArgumentNullException("zipFile");
 
             EpubBook book = new EpubBook();
-            using (ZipArchive epubArchive = new ZipArchive(zipFile))
+            using (ZipFile epubArchive = new ZipFile(zipFile))
             {
                 book.Schema = SchemaReader.ReadSchema(epubArchive);
                 book.Title = book.Schema.Package.Metadata.Titles.FirstOrDefault() ?? String.Empty;
@@ -49,12 +51,12 @@ namespace VersFx.Formats.Text.Epub
 			return coverImageContentFile;
 		}
 
-		private static List<EpubChapter> LoadChapters(EpubBook book, ZipArchive epubArchive)
+		private static List<EpubChapter> LoadChapters(EpubBook book, ZipFile epubArchive)
         {
             return LoadChapters(book, book.Schema.Navigation.NavMap, epubArchive);
         }
 
-        private static List<EpubChapter> LoadChapters(EpubBook book, List<EpubNavigationPoint> navigationPoints, ZipArchive epubArchive)
+        private static List<EpubChapter> LoadChapters(EpubBook book, List<EpubNavigationPoint> navigationPoints, ZipFile epubArchive)
         {
             List<EpubChapter> result = new List<EpubChapter>();
             foreach (EpubNavigationPoint navigationPoint in navigationPoints)

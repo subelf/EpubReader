@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
+using ICSharpCode.SharpZipLib.Zip;
 using VersFx.Formats.Text.Epub.Entities;
 using VersFx.Formats.Text.Epub.Schema.Opf;
 using VersFx.Formats.Text.Epub.Utils;
@@ -10,7 +10,7 @@ namespace VersFx.Formats.Text.Epub.Readers
 {
 	internal static class ContentReader
 	{
-		public static EpubContent ReadContentFiles(ZipArchive epubArchive, EpubBook book)
+		public static EpubContent ReadContentFiles(ZipFile epubArchive, EpubBook book)
 		{
 			EpubContent result = new EpubContent
 			{
@@ -24,20 +24,20 @@ namespace VersFx.Formats.Text.Epub.Readers
 			foreach (EpubManifestItem manifestItem in book.Schema.Package.Manifest)
 			{
 				string contentFilePath = ZipPathUtils.Combine(book.Schema.ContentDirectoryPath, manifestItem.Href);
-				ZipArchiveEntry contentFileEntry = epubArchive.GetEntry(contentFilePath);
+				var contentFileEntry = epubArchive.GetEntry(contentFilePath);
 				if (contentFileEntry == null)
 					throw new Exception(String.Format("EPUB parsing error: file {0} not found in archive.", contentFilePath));
-				if (contentFileEntry.Length > Int32.MaxValue)
+				if (contentFileEntry.Size > Int32.MaxValue)
 					throw new Exception(String.Format("EPUB parsing error: file {0} is bigger than 2 Gb.", contentFilePath));
 				string fileName = manifestItem.Href;
 				string contentMimeType = manifestItem.MediaType;
 				EpubContentType contentType = GetContentTypeByContentMimeType(contentMimeType);
 				EpubContentFile epubContentFile;
-				using (var contentStream = contentFileEntry.Open())
+				using (var contentStream = epubArchive.GetInputStream(contentFileEntry))
 				{
 					if (contentStream == null)
 						throw new Exception(String.Format("Incorrect EPUB file: content file \"{0}\" specified in manifest is not found", fileName));
-				    epubContentFile = new EpubContentFile(fileName, contentType, contentMimeType, null);//contentStream.ToArray());
+					epubContentFile = new EpubContentFile(fileName, contentType, contentMimeType, contentStream.ToArray());
 				}
 				switch (contentType)
 				{

@@ -1,16 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{313E44F0-4BC2-4A4F-B24B-C29D8FFB7C4E}</ProjectGuid>
+    <ProjectGuid>{521BFEED-E0CD-4C5B-B897-D88C75F3DAFD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VersFx.Formats.Text.Epub</RootNamespace>
-    <AssemblyName>VersFx.Formats.Text.Epub</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <RootNamespace>VersFx.Formats.Text.Epub.Portable</RootNamespace>
+    <AssemblyName>VersFx.Formats.Text.Epub.Portable</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
     <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,23 +34,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Entities\EpubChapter.cs" />
     <Compile Include="Entities\EpubContent.cs" />
-    <Compile Include="Entities\EpubContentType.cs" />
-    <Compile Include="EpubBook.cs" />
     <Compile Include="Entities\EpubContentFile.cs" />
+    <Compile Include="Entities\EpubContentType.cs" />
     <Compile Include="Entities\EpubSchema.cs" />
+    <Compile Include="EpubBook.cs" />
     <Compile Include="EpubReader.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Readers\ContentReader.cs" />
     <Compile Include="Readers\NavigationReader.cs" />
@@ -73,17 +68,26 @@
     <Compile Include="Schema\Opf\EpubManifestItem.cs" />
     <Compile Include="Schema\Opf\EpubMetadata.cs" />
     <Compile Include="Schema\Opf\EpubMetadataContributor.cs" />
-    <Compile Include="Schema\Opf\EpubMetadataMeta.cs" />
     <Compile Include="Schema\Opf\EpubMetadataCreator.cs" />
     <Compile Include="Schema\Opf\EpubMetadataDate.cs" />
     <Compile Include="Schema\Opf\EpubMetadataIdentifier.cs" />
+    <Compile Include="Schema\Opf\EpubMetadataMeta.cs" />
     <Compile Include="Schema\Opf\EpubPackage.cs" />
     <Compile Include="Schema\Opf\EpubSpine.cs" />
     <Compile Include="Schema\Opf\EpubSpineItemRef.cs" />
     <Compile Include="Schema\Opf\EpubVersion.cs" />
     <Compile Include="Utils\ZipPathUtils.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib.Portable, Version=0.86.0.51803, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.Portable.0.86.0.0003\lib\portable-net45+netcore45+wp8+win8+wpa81+MonoTouch+MonoAndroid+Xamarin.iOS10\ICSharpCode.SharpZipLib.Portable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
