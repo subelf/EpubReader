@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using VersFx.Formats.Text.Epub.Entities;
+using VersFx.Formats.Text.Epub.Portable.Utils;
 using VersFx.Formats.Text.Epub.Schema.Navigation;
 using VersFx.Formats.Text.Epub.Schema.Opf;
 using VersFx.Formats.Text.Epub.Utils;
@@ -15,15 +16,18 @@ namespace VersFx.Formats.Text.Epub.Readers
 {
     internal static class SchemaReader
     {
-        public static EpubSchema ReadSchema(ZipFile epubArchive)
+        public static async Task<EpubSchema> ReadSchema(ZipUtilities zip)
         {
-            EpubSchema result = new EpubSchema();
-            string rootFilePath = RootFilePathReader.GetRootFilePath(epubArchive);
-            string contentDirectoryPath = ZipPathUtils.GetDirectoryPath(rootFilePath);
+            var result = new EpubSchema();
+
+            var rootFilePath = await RootFilePathReader.GetRootFilePath(zip);
+            var contentDirectoryPath = ZipPathUtils.GetDirectoryPath(rootFilePath);
             result.ContentDirectoryPath = contentDirectoryPath;
-            EpubPackage package = PackageReader.ReadPackage(epubArchive, rootFilePath);
+
+            var package = await PackageReader.ReadPackage(zip, rootFilePath);
             result.Package = package;
-            EpubNavigation navigation = NavigationReader.ReadNavigation(epubArchive, contentDirectoryPath, package);
+
+            var navigation = await NavigationReader.ReadNavigation(zip, contentDirectoryPath, package);
             result.Navigation = navigation;
             return result;
         }

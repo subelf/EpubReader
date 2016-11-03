@@ -1,19 +1,23 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace VersFx.Formats.Text.Epub.Entities
 {
-	public class EpubContentFile
+	public class EpubContentFile : IDisposable
 	{
-		public Func<Stream> Content { get; private set; }
+		private WeakReference<EpubBook> book { get; set; }
 		public string FileName { get; private set; }
+        public string ZipEntry { get; set; }
 		public EpubContentType ContentType { get; private set; }
 		public string ContentMimeType { get; private set; }
 
-		public EpubContentFile(string fileName, EpubContentType type, string mime, Func<Stream> Content)
+		public EpubContentFile(string fileName, EpubContentType type, string mime, string zipEntry, EpubBook book)
 		{
-			this.Content = Content;
+            this.book = new WeakReference<EpubBook>(book);
+		    this.ZipEntry = zipEntry;
 			this.FileName = fileName;
 			this.ContentType = type;
 			this.ContentMimeType = mime;
@@ -21,8 +25,34 @@ namespace VersFx.Formats.Text.Epub.Entities
 
 		public Task<Stream> Resolve()
 		{
-			var stream = Content?.Invoke();
-			return Task.FromResult(stream);
+//            EpubBook bookref;
+//            Stream stream = null;
+//
+//            if (book.TryGetTarget(out bookref) && bookref.Zip != null)
+//            {
+//                stream = await bookref.Zip.ResolveEntry(ZipEntry);
+//            }
+//
+//		    return stream;
+
+            return Task.Run( async () =>
+		    {
+		        EpubBook bookref;
+		        Stream stream = null;
+
+		        if (book.TryGetTarget(out bookref) && bookref.Zip != null)
+		        {
+		            stream = await bookref.Zip.ResolveEntry(ZipEntry);
+		        }
+
+		        return stream;
+		    });
 		}
+
+	    public void Dispose()
+	    {
+	        book?.SetTarget(null);
+	        book = null;
+	    }
 	}
 }

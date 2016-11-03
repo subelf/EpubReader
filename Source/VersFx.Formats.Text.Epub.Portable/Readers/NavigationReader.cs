@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using ICSharpCode.SharpZipLib.Zip;
+using VersFx.Formats.Text.Epub.Portable.Utils;
 using VersFx.Formats.Text.Epub.Schema.Navigation;
 using VersFx.Formats.Text.Epub.Schema.Opf;
 using VersFx.Formats.Text.Epub.Utils;
@@ -15,26 +17,32 @@ namespace VersFx.Formats.Text.Epub.Readers
     {
 		private static readonly XNamespace NsNcx = "http://www.daisy.org/z3986/2005/ncx/";
 		
-		public static EpubNavigation ReadNavigation(ZipFile epubArchive, string contentDirectoryPath, EpubPackage package)
+		public static async Task<EpubNavigation> ReadNavigation(ZipUtilities zip, string contentDirectoryPath, EpubPackage package)
         {
-            EpubNavigation result = new EpubNavigation();
-            string tocId = package.Spine.Toc;
-            if (String.IsNullOrEmpty(tocId))
+            var result = new EpubNavigation();
+            var tocId = package.Spine.Toc;
+
+            if (string.IsNullOrEmpty(tocId))
                 throw new Exception("EPUB parsing error: TOC ID is empty.");
-            EpubManifestItem tocManifestItem = package.Manifest.FirstOrDefault(item => String.Compare(item.Id, tocId, StringComparison.OrdinalIgnoreCase) == 0);
+
+            var tocManifestItem = package.Manifest.FirstOrDefault(item => String.Compare(item.Id, tocId, StringComparison.OrdinalIgnoreCase) == 0);
+
             if (tocManifestItem == null)
-                throw new Exception(String.Format("EPUB parsing error: TOC item {0} not found in EPUB manifest.", tocId));
-            string tocFileEntryPath = ZipPathUtils.Combine(contentDirectoryPath, tocManifestItem.Href);
-            var tocFileEntry = epubArchive.GetEntry(tocFileEntryPath);
-            if (tocFileEntry == null)
-                throw new Exception(String.Format("EPUB parsing error: TOC file {0} not found in archive.", tocFileEntryPath));
-            if (tocFileEntry.Size > Int32.MaxValue)
-                throw new Exception(String.Format("EPUB parsing error: TOC file {0} is bigger than 2 Gb.", tocFileEntryPath));
+                throw new Exception($"EPUB parsing error: TOC item {tocId} not found in EPUB manifest.");
+
+            var tocFileEntryPath = ZipPathUtils.Combine(contentDirectoryPath, tocManifestItem.Href);
 
             XDocument containerDocument;
-            using (Stream containerStream = epubArchive.GetInputStream(tocFileEntry))
+		    using (var containerStream = await zip.ResolveEntry(tocFileEntryPath))
+		    {
+		        if (containerStream == null)
+		        {
+                    throw new Exception($"EPUB parsing error: TOC file {tocFileEntryPath} not found in archive.");
+                }
+
                 containerDocument = XDocument.Load(containerStream);
-			
+            }
+                
 			var ncxNode = containerDocument.Element(NsNcx + "ncx");
 			if (ncxNode == null)
 				throw new Exception("EPUB parsing error: TOC file does not contain ncx element");

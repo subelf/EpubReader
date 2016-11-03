@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using ICSharpCode.SharpZipLib.Zip;
 using VersFx.Formats.Text.Epub.Entities;
+using VersFx.Formats.Text.Epub.Portable.Utils;
 
 namespace VersFx.Formats.Text.Epub
 {
@@ -9,20 +9,21 @@ namespace VersFx.Formats.Text.Epub
     {
         public string Title { get; set; }
         public string Author { get; set; }
-		public ZipFile Zip { get; set; }
+		public ZipUtilities Zip { get; private set; }
         public List<string> AuthorList { get; set; }
         public EpubSchema Schema { get; set; }
         public EpubContent Content { get; set; }
         public EpubContentFile CoverImage { get; set; }
         public List<EpubChapter> Chapters { get; set; }
 
-		public EpubBook(ZipFile zipFile)
+		public EpubBook(ZipUtilities zipFile)
 		{
 			Zip = zipFile;
 		}
 
 		public void Dispose()
 		{
+            Zip?.Dispose();
 			Zip = null;
 
 			AuthorList?.Clear();
