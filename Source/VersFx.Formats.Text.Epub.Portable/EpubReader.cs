@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using ICSharpCode.SharpZipLib.Zip;
 using VersFx.Formats.Text.Epub.Entities;
 using VersFx.Formats.Text.Epub.Readers;
@@ -12,25 +10,25 @@ using VersFx.Formats.Text.Epub.Schema.Opf;
 
 namespace VersFx.Formats.Text.Epub
 {
-    public static class EpubReader
-    {
-        public static EpubBook OpenBook(Stream zipFile)
-        {
+	public static class EpubReader
+	{
+		public static EpubBook OpenBook(Stream zipFile)
+		{
 			if (zipFile == null) throw new ArgumentNullException("zipFile");
 
-            EpubBook book = new EpubBook();
-            using (ZipFile epubArchive = new ZipFile(zipFile))
-            {
-                book.Schema = SchemaReader.ReadSchema(epubArchive);
-                book.Title = book.Schema.Package.Metadata.Titles.FirstOrDefault() ?? String.Empty;
-                book.AuthorList = book.Schema.Package.Metadata.Creators.Select(creator => creator.Creator).ToList();
-                book.Author = String.Join(", ", book.AuthorList);
-                book.Content = ContentReader.ReadContentFiles(epubArchive, book);
-                book.CoverImage = LoadCoverImageFile(book);
-                book.Chapters = LoadChapters(book, epubArchive);
-            }
-            return book;
-        }
+			var epubArchive = new ZipFile(zipFile);
+			var book = new EpubBook(epubArchive);
+
+			book.Schema = SchemaReader.ReadSchema(epubArchive);
+			book.Title = book.Schema.Package.Metadata.Titles.FirstOrDefault() ?? String.Empty;
+			book.AuthorList = book.Schema.Package.Metadata.Creators.Select(creator => creator.Creator).ToList();
+			book.Author = String.Join(", ", book.AuthorList);
+			book.Content = ContentReader.ReadContentFiles(epubArchive, book);
+			book.CoverImage = LoadCoverImageFile(book);
+			book.Chapters = LoadChapters(book, epubArchive);
+
+			return book;
+		}
 
 		private static EpubContentFile LoadCoverImageFile(EpubBook book)
 		{
@@ -52,35 +50,35 @@ namespace VersFx.Formats.Text.Epub
 		}
 
 		private static List<EpubChapter> LoadChapters(EpubBook book, ZipFile epubArchive)
-        {
-            return LoadChapters(book, book.Schema.Navigation.NavMap, epubArchive);
-        }
+		{
+			return LoadChapters(book, book.Schema.Navigation.NavMap, epubArchive);
+		}
 
-        private static List<EpubChapter> LoadChapters(EpubBook book, List<EpubNavigationPoint> navigationPoints, ZipFile epubArchive)
-        {
-            List<EpubChapter> result = new List<EpubChapter>();
-            foreach (EpubNavigationPoint navigationPoint in navigationPoints)
-            {
-                EpubChapter chapter = new EpubChapter();
-                chapter.Title = navigationPoint.NavigationLabels.First().Text;
-                int contentSourceAnchorCharIndex = navigationPoint.Content.Source.IndexOf('#');
-                if (contentSourceAnchorCharIndex == -1)
-                    chapter.ContentFileName = navigationPoint.Content.Source;
-                else
-                {
-                    chapter.ContentFileName = navigationPoint.Content.Source.Substring(0, contentSourceAnchorCharIndex);
-                    chapter.Anchor = navigationPoint.Content.Source.Substring(contentSourceAnchorCharIndex + 1);
-                }
+		private static List<EpubChapter> LoadChapters(EpubBook book, List<EpubNavigationPoint> navigationPoints, ZipFile epubArchive)
+		{
+			List<EpubChapter> result = new List<EpubChapter>();
+			foreach (EpubNavigationPoint navigationPoint in navigationPoints)
+			{
+				EpubChapter chapter = new EpubChapter();
+				chapter.Title = navigationPoint.NavigationLabels.First().Text;
+				int contentSourceAnchorCharIndex = navigationPoint.Content.Source.IndexOf('#');
+				if (contentSourceAnchorCharIndex == -1)
+					chapter.ContentFileName = navigationPoint.Content.Source;
+				else
+				{
+					chapter.ContentFileName = navigationPoint.Content.Source.Substring(0, contentSourceAnchorCharIndex);
+					chapter.Anchor = navigationPoint.Content.Source.Substring(contentSourceAnchorCharIndex + 1);
+				}
 
-                EpubContentFile htmlContentFile;
-                if (!book.Content.Html.TryGetValue(chapter.ContentFileName, out htmlContentFile))
-                    throw new Exception(String.Format("Incorrect EPUB manifest: item with href = \"{0}\" is missing", chapter.ContentFileName));
+				EpubContentFile htmlContentFile;
+				if (!book.Content.Html.TryGetValue(chapter.ContentFileName, out htmlContentFile))
+					throw new Exception(String.Format("Incorrect EPUB manifest: item with href = \"{0}\" is missing", chapter.ContentFileName));
 				chapter.HtmlContentFile = htmlContentFile;
 
 				chapter.SubChapters = LoadChapters(book, navigationPoint.ChildNavigationPoints, epubArchive);
-                result.Add(chapter);
-            }
-            return result;
-        }
-    }
+				result.Add(chapter);
+			}
+			return result;
+		}
+	}
 }

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
+using System.Threading;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using VersFx.Formats.Text.Epub.Entities;
 using VersFx.Formats.Text.Epub.Schema.Opf;
@@ -10,6 +13,8 @@ namespace VersFx.Formats.Text.Epub.Readers
 {
 	internal static class ContentReader
 	{
+		public static SemaphoreSlim semaphore = new SemaphoreSlim(1);
+
 		public static EpubContent ReadContentFiles(ZipFile epubArchive, EpubBook book)
 		{
 			EpubContent result = new EpubContent
@@ -25,20 +30,26 @@ namespace VersFx.Formats.Text.Epub.Readers
 			{
 				string contentFilePath = ZipPathUtils.Combine(book.Schema.ContentDirectoryPath, manifestItem.Href);
 				var contentFileEntry = epubArchive.GetEntry(contentFilePath);
+
 				if (contentFileEntry == null)
 					throw new Exception(String.Format("EPUB parsing error: file {0} not found in archive.", contentFilePath));
+				
 				if (contentFileEntry.Size > Int32.MaxValue)
 					throw new Exception(String.Format("EPUB parsing error: file {0} is bigger than 2 Gb.", contentFilePath));
+				
 				string fileName = manifestItem.Href;
 				string contentMimeType = manifestItem.MediaType;
 				EpubContentType contentType = GetContentTypeByContentMimeType(contentMimeType);
 				EpubContentFile epubContentFile;
-				using (var contentStream = epubArchive.GetInputStream(contentFileEntry))
+
+				var resolve = new Func<Stream>(() =>
 				{
-					if (contentStream == null)
-						throw new Exception(String.Format("Incorrect EPUB file: content file \"{0}\" specified in manifest is not found", fileName));
-					epubContentFile = new EpubContentFile(fileName, contentType, contentMimeType, contentStream.ToArray());
-				}
+					var stream = epubArchive.GetInputStream(contentFileEntry);
+					return stream;
+				});
+
+				epubContentFile = new EpubContentFile(fileName, contentType, contentMimeType, resolve);
+
 				switch (contentType)
 				{
 					case EpubContentType.XHTML_1_1:

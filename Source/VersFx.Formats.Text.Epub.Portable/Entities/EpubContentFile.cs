@@ -1,25 +1,28 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace VersFx.Formats.Text.Epub.Entities
 {
-    public class EpubContentFile
+	public class EpubContentFile
 	{
-		public EpubContentFile(string fileName, EpubContentType type, string mime, byte[] content)
-		{
-			this.FileName = fileName;
-			this.ContentType = type;
-			this.ContentMimeType = mime;
-			this.contentBytes = content;
-		}
-
+		public Func<Stream> Content { get; private set; }
 		public string FileName { get; private set; }
 		public EpubContentType ContentType { get; private set; }
 		public string ContentMimeType { get; private set; }
-		public MemoryStream GetContent()
+
+		public EpubContentFile(string fileName, EpubContentType type, string mime, Func<Stream> Content)
 		{
-		    return new MemoryStream(this.contentBytes, 0, this.contentBytes.Length, false);
+			this.Content = Content;
+			this.FileName = fileName;
+			this.ContentType = type;
+			this.ContentMimeType = mime;
 		}
 
-		private byte[] contentBytes;
+		public Task<Stream> Resolve()
+		{
+			var stream = Content?.Invoke();
+			return Task.FromResult(stream);
+		}
 	}
 }
