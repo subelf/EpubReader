@@ -16,7 +16,7 @@ namespace VersFx.Formats.Text.Epub.Readers
     {
         public static SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-        public static Task<EpubContent> ReadContentFiles(ZipUtilities zip, EpubBook book)
+        public static async Task<EpubContent> ReadContentFiles(ZipUtilities zip, EpubBook book)
         {
             var result = new EpubContent
             {
@@ -34,6 +34,13 @@ namespace VersFx.Formats.Text.Epub.Readers
                 var contentMimeType = manifestItem.MediaType;
                 var contentType = GetContentTypeByContentMimeType(contentMimeType);
                 var epubContentFile = new EpubContentFile(fileName, contentType, contentMimeType, contentFilePath, book);
+
+				await epubContentFile.Prepare().ConfigureAwait(false);
+
+				if (epubContentFile.ContentSize <= 1)
+				{
+					continue;
+				}
 
                 switch (contentType)
                 {
@@ -57,7 +64,7 @@ namespace VersFx.Formats.Text.Epub.Readers
                 result.AllFiles.Add(fileName, epubContentFile);
             }
 
-            return Task.FromResult(result);
+			return result;
         }
 
         private static EpubContentType GetContentTypeByContentMimeType(string contentMimeType)
