@@ -17,11 +17,25 @@ namespace VersFx.Formats.Text.Epub.Portable.Utils
             semaphore = new SemaphoreSlim(1);
         }
 
+		public async Task<ZipEntry> Entry(string entry)
+		{
+			await semaphore.WaitAsync().ConfigureAwait(false);
+
+			var obj = file.GetEntry(entry);
+
+			semaphore.Release();
+
+			return obj;
+		}
+
         public async Task<Stream> ResolveEntry(ZipEntry entry)
         {
-            await semaphore.WaitAsync();
+			await semaphore.WaitAsync().ConfigureAwait(false);
 
-            var stream = file.GetInputStream(entry);
+			var stream = await Task.Run(() =>
+			{
+				return file.GetInputStream(entry);
+			}).ConfigureAwait(false);
 
             semaphore.Release();
 
@@ -30,18 +44,14 @@ namespace VersFx.Formats.Text.Epub.Portable.Utils
 
         public async Task<Stream> ResolveEntry(string entry)
         {
-            await semaphore.WaitAsync();
+			var entryObj = await Entry(entry);
 
-            var entryobj = file.GetEntry(entry);
-
-            semaphore.Release();
-
-            if (entryobj == null)
+            if (entryObj == null)
             {
                 return null;
             }
 
-            return await ResolveEntry(entryobj);
+            return await ResolveEntry(entryObj);
         }
 
         public void Dispose()
