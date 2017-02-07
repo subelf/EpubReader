@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VersFx.Formats.Text.Epub.Entities
+namespace VersFx.Formats.Text.Epub.Schema.Navigation
 {
-    public class EpubTextContentFile : EpubContentFile
+    public class EpubNavigationHeadMeta
     {
+        public string Name { get; set; }
         public string Content { get; set; }
+        public string Scheme { get; set; }
     }
 }

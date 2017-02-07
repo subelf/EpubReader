@@ -1,0 +1,17 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersFx.Formats.Text.Epub.Portable", "VersFx.Formats.Text.Epub.Portable.csproj", "{521BFEED-E0CD-4C5B-B897-D88C75F3DAFD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{521BFEED-E0CD-4C5B-B897-D88C75F3DAFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{521BFEED-E0CD-4C5B-B897-D88C75F3DAFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{521BFEED-E0CD-4C5B-B897-D88C75F3DAFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{521BFEED-E0CD-4C5B-B897-D88C75F3DAFD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

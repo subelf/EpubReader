@@ -6,8 +6,13 @@ using System.Threading.Tasks;
 
 namespace VersFx.Formats.Text.Epub.Schema.Navigation
 {
-    public class EpubNavigationPageTarget : EpubNavigationTarget
-	{
-        public EpubNavigationPageTargetType Type { get; set; }
+    public class EpubNavigationLabel
+    {
+        public string Text { get; set; }
+
+        public override string ToString()
+        {
+            return Text;
+        }
     }
 }

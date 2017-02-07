@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 //using System.Xml;
 using System.Xml.Linq;
-using System.Linq;
+using System.Threading.Tasks;
+using VersFx.Formats.Text.Epub.Portable.Utils;
 using VersFx.Formats.Text.Epub.Schema.Opf;
-using VersFx.Formats.Text.Epub.Utils;
 
 namespace VersFx.Formats.Text.Epub.Readers
 {
@@ -14,18 +12,23 @@ namespace VersFx.Formats.Text.Epub.Readers
 	{
 		private static readonly XNamespace NsOpf = "http://www.idpf.org/2007/opf";
 
-		public static EpubPackage ReadPackage(ZipArchive epubArchive, string rootFilePath)
+		public static async Task<EpubPackage> ReadPackage(ZipUtilities epubArchive, string rootFilePath)
 		{
-			ZipArchiveEntry rootFileEntry = epubArchive.GetEntry(rootFilePath);
-			if (rootFileEntry == null)
-				throw new Exception("EPUB parsing error: root file not found in archive.");
 			XDocument containerDocument;
-			using (Stream containerStream = rootFileEntry.Open())
-				containerDocument = XDocument.Load(containerStream);
 
-			var packageNode = containerDocument.Element(NsOpf + "package");
-			EpubPackage result = new EpubPackage();
-			string epubVersionValue = packageNode.Attribute("version").Value;
+		    using (var containerStream = await epubArchive.ResolveEntry(rootFilePath))
+		    {
+		        if (containerStream == null)
+		        {
+                    throw new Exception("EPUB parsing error: root file not found in archive.");
+                }
+                containerDocument = XDocument.Load(containerStream);
+            }
+
+		    var packageNode = containerDocument.Element(NsOpf + "package");
+			var result = new EpubPackage();
+			var epubVersionValue = packageNode.Attribute("version").Value;
+
 			if (epubVersionValue == "2.0")
 				result.EpubVersion = EpubVersion.EPUB_2;
 			else
